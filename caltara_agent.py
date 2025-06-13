@@ -18,7 +18,7 @@ def send_sms(to, name, amount, due_date):
 def send_voice(to, name, amount, due_date):
     twiml = f"""
     <Response>
-        <Say voice="google" language="en-US">
+        <Say voice="Kimberly" language="en-US">
             Hi {name}, this is a quick reminder from Caltara.
             <Pause length="1"/>
             You have an past due balance of {amount} dollars, due on {due_date}.
