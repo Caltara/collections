@@ -1,38 +1,46 @@
-from fastapi import FastAPI, Form
-from fastapi.responses import Response
-from twilio.twiml.voice_response import VoiceResponse, Gather
+import streamlit as st
+import pandas as pd
+from caltara_agent import send_sms, send_voice
+import datetime
 
-app = FastAPI()
+st.title("📞 Caltara Collections Agent")
 
-@app.get("/voice")
-async def voice(name: str = "Customer", amount: str = "an unknown amount", due: str = "an unknown date"):
-    response = VoiceResponse()
-    gather = Gather(
-        input="dtmf",
-        num_digits=1,
-        action="/process_input",
-        method="POST"
-    )
-    gather.say(
-        f"Hi {name}, this is a quick reminder from Caltara. "
-        f"You have a past due balance of {amount} dollars, that was due on {due}. "
-        "Please press 1 to speak with a representative to pay your balance now, "
-        "or visit our website to make a payment today to avoid your current service from being interrupted.",
-        voice="Joanna",
-        language="en-US"
-    )
-    response.append(gather)
-    response.say("We didn’t receive any input. Goodbye.", voice="Joanna")
+uploaded_file = st.file_uploader("Upload customer CSV", type=["csv"])
+method = st.radio("Send via:", ["SMS", "Voice Call"])
 
-    return Response(content=str(response), media_type="application/xml")
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+    st.write("📋 Customer Preview", df)
 
-@app.post("/process_input")
-async def process_input(Digits: str = Form(...)):
-    response = VoiceResponse()
-    if Digits == "1":
-        response.say("Please hold while we connect you to a representative.", voice="Joanna")
-        response.dial("+1234567890")  # Change this number to your rep
-    else:
-        response.say("Invalid input. Goodbye.", voice="Joanna")
+    required_columns = {"Name", "Phone", "AmountDue", "DueDate"}
+    if not required_columns.issubset(df.columns):
+        st.error(f"❌ CSV must include these columns: {required_columns}")
+        st.stop()
 
-    return Response(content=str(response), media_type="application/xml")
+    if st.button("Start Contacting Customers"):
+        logs = []
+        with st.spinner("📡 Contacting customers..."):
+            for _, row in df.iterrows():
+                name = row['Name']
+                phone = str(row['Phone'])
+                amount = row['AmountDue']
+                due = pd.to_datetime(row['DueDate']).strftime("%B %d, %Y")
+
+                try:
+                    result = send_sms(phone, name, amount, due) if method == "SMS" else send_voice(phone, name, amount, due)
+                    status = "Sent"
+                except Exception as e:
+                    status = f"Error: {e}"
+
+                logs.append({
+                    "Name": name,
+                    "Phone": phone,
+                    "Status": status,
+                    "Method": method,
+                    "Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                })
+
+        log_df = pd.DataFrame(logs)
+        st.success("✅ All messages processed.")
+        st.write("📊 Contact Log", log_df)
+        log_df.to_csv("logs.csv", index=False)
