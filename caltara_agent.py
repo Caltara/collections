@@ -21,11 +21,10 @@ def send_voice(to, name, amount, due_date):
         <Say voice="Joanna" language="en-US">
             Hi {name}, this is a quick reminder from Caltara.
             <Pause length="1"/>
-            You have an past due balance of {amount} dollars, due on {due_date}.
+            You have a past due balance of {amount} dollars, that was due on {due_date}.
             <Pause length="1"/>
             Please press 1 to speak with a representative to pay your balance now,
-            or visit your invoice link online.
-            Thanks, and have a great day!
+            or visit our website to make a payment today to avoid your current service from being interrupted.
         </Say>
     </Response>
     """
