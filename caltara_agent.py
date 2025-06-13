@@ -15,22 +15,26 @@ def send_sms(to, name, amount, due_date):
         to=to
     )
 
-def send_voice(to, name, amount, due_date):
+def def send_voice(to, name, amount, due_date):
     twiml = f"""
     <Response>
-        <Gather numDigits="1" action="/handle-key" method="POST" timeout="5">
+        <Gather numDigits="1" action="/handle-key" method="POST" timeout="6">
             <Say voice="alice" language="en-US">
-                Hi {name}, this is a quick reminder from Caltara.
+                Hello {name}, this is Caltara with a courtesy reminder.
                 <Pause length="1"/>
-                You have an outstanding invoice of {amount} dollars, due on {due_date}.
+                Our records show an outstanding balance of {amount} dollars,
+                due on {due_date}.
                 <Pause length="1"/>
-                Please press 1 to speak with a representative,
-                or visit your invoice link online.
-                Thank you.
+                If you would like to speak with someone now regarding your past due balance, please press 1.
+                <Pause length="1"/>
+                Or, you can take care of this online at your convenience.
+                <Pause length="1"/>
+                We appreciate your attention to this matter.
             </Say>
         </Gather>
         <Say voice="alice" language="en-US">
-            We didn’t receive any input. Goodbye!
+            We didn’t receive any input. Please feel free to reach out with any questions.
+            Goodbye for now.
         </Say>
     </Response>
     """
