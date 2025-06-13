@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from collections import send_sms, send_voice
+from caltara_agent import send_sms, send_voice
 import datetime
 
 st.title("📞 Caltara Collections Agent")
