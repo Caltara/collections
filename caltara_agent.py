@@ -16,7 +16,24 @@ def send_sms(to, name, amount, due_date):
     )
 
 def send_voice(to, name, amount, due_date):
-    twiml = f"<Response><Say>Hi {name}, this is a payment reminder from Caltara. You have an outstanding invoice of {amount} dollars, due on {due_date}. Please press 1 to talk to a representative or visit your invoice link.</Say></Response>"
+    twiml = f"""
+    <Response>
+        <Gather numDigits="1" action="/handle-key" method="POST" timeout="5">
+            <Say voice="alice" language="en-US">
+                Hi {name}, this is a quick reminder from Caltara.
+                <Pause length="1"/>
+                You have an outstanding invoice of {amount} dollars, due on {due_date}.
+                <Pause length="1"/>
+                Please press 1 to speak with a representative,
+                or visit your invoice link online.
+                Thank you.
+            </Say>
+        </Gather>
+        <Say voice="alice" language="en-US">
+            We didn’t receive any input. Goodbye!
+        </Say>
+    </Response>
+    """
     call = client.calls.create(
         twiml=twiml,
         to=to,
