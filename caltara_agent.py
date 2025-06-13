@@ -1,4 +1,5 @@
 import streamlit as st
+from twilio.rest import Client  # ✅ Add this line
 
 TWILIO_SID = st.secrets["TWILIO_ACCOUNT_SID"]
 TWILIO_AUTH_TOKEN = st.secrets["TWILIO_AUTH_TOKEN"]
