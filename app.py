@@ -1,46 +1,28 @@
 import streamlit as st
-import pandas as pd
 from caltara_agent import send_sms, send_voice
-import datetime
+from twilio_server import app as twilio_app
+from fastapi import FastAPI
+from streamlit.web.server import Server
 
-st.title("📞 Caltara Collections Agent")
+# Streamlit UI
+st.title("📞 Caltara AI Collections Agent")
 
-uploaded_file = st.file_uploader("Upload customer CSV", type=["csv"])
-method = st.radio("Send via:", ["SMS", "Voice Call"])
+to = st.text_input("📱 Customer Phone Number", "+1")
+name = st.text_input("👤 Customer Name")
+amount = st.text_input("💵 Amount Due", "125")
+due_date = st.date_input("📅 Due Date")
+domain_url = st.text_input("🌐 Public Webhook URL (e.g., https://abcd.ngrok.io)", "")
 
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-    st.write("📋 Customer Preview", df)
+if st.button("Send SMS Reminder"):
+    result = send_sms(to, name, amount, due_date)
+    st.success(f"✅ SMS sent! SID: {result.sid}")
 
-    required_columns = {"Name", "Phone", "AmountDue", "DueDate"}
-    if not required_columns.issubset(df.columns):
-        st.error(f"❌ CSV must include these columns: {required_columns}")
-        st.stop()
+if st.button("Make Voice Call"):
+    if not domain_url:
+        st.error("❌ Please enter your public webhook domain URL.")
+    else:
+        result = send_voice(to, name, amount, due_date, domain_url)
+        st.success(f"📞 Voice call started! SID: {result.sid}")
 
-    if st.button("Start Contacting Customers"):
-        logs = []
-        with st.spinner("📡 Contacting customers..."):
-            for _, row in df.iterrows():
-                name = row['Name']
-                phone = str(row['Phone'])
-                amount = row['AmountDue']
-                due = pd.to_datetime(row['DueDate']).strftime("%B %d, %Y")
-
-                try:
-                    result = send_sms(phone, name, amount, due) if method == "SMS" else send_voice(phone, name, amount, due)
-                    status = "Sent"
-                except Exception as e:
-                    status = f"Error: {e}"
-
-                logs.append({
-                    "Name": name,
-                    "Phone": phone,
-                    "Status": status,
-                    "Method": method,
-                    "Time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                })
-
-        log_df = pd.DataFrame(logs)
-        st.success("✅ All messages processed.")
-        st.write("📊 Contact Log", log_df)
-        log_df.to_csv("logs.csv", index=False)
+# OPTIONAL: Run FastAPI server if you’re embedding
+# (You’ll still need to run the FastAPI server on a public endpoint for Twilio)
