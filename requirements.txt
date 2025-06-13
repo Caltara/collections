@@ -1,4 +1,4 @@
-fastapi
-uvicorn
-twilio
-python-multipart
+fastapi==0.95.1
+uvicorn[standard]==0.22.0
+twilio==8.11.0
+python-multipart==0.0.6
