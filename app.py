@@ -11,7 +11,7 @@ to = st.text_input("📱 Customer Phone Number", "+1")
 name = st.text_input("👤 Customer Name")
 amount = st.text_input("💵 Amount Due", "125")
 due_date = st.date_input("📅 Due Date")
-domain_url = st.text_input("🌐 Public Webhook URL (e.g., https://abcd.ngrok.io)", "")
+domain_url = "https://collections-dvpk.onrender.com"
 
 if st.button("Send SMS Reminder"):
     result = send_sms(to, name, amount, due_date)
